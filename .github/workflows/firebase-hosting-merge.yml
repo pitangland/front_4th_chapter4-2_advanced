@@ -17,13 +17,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm" # ✅ npm 캐싱 추가 (속도 향상)
+          cache: "pnpm" # ✅ pnpm 캐싱 추가 (속도 향상)
+
+      - name: Install pnpm
+        run: npm install -g pnpm # 🔥 pnpm 설치
 
       - name: Install Dependencies
-        run: npm install # ✅ 패키지 설치 추가
+        run: pnpm install # 🔥 pnpm으로 패키지 설치
 
       - name: Build Project
-        run: npm run build # ✅ 프로젝트 빌드 (Firebase Hosting에 배포될 폴더 생성)
+        run: pnpm run build # ✅ 프로젝트 빌드 (Firebase Hosting에 배포될 폴더 생성)
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
