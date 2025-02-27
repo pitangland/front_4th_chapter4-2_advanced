@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -115,7 +115,7 @@ const fetchAllLectures = async () =>
   ]);
 
 // TODO: 이 컴포넌트에서 불필요한 연산이 발생하지 않도록 다양한 방식으로 시도해주세요.
-const SearchDialog = ({ searchInfo, onClose }: Props) => {
+const SearchDialog = memo(({ searchInfo, onClose }: Props) => {
   const { setSchedulesMap } = useScheduleContext();
 
   const loaderWrapperRef = useRef<HTMLDivElement>(null);
@@ -130,7 +130,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
     majors: []
   });
 
-  const getFilteredLectures = () => {
+  const getFilteredLectures = useCallback(() => {
     const { query = "", credits, grades, days, times, majors } = searchOptions;
     return lectures
       .filter(
@@ -167,39 +167,54 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
           s.range.some((time) => times.includes(time))
         );
       });
-  };
+  }, [lectures, searchOptions]);
 
-  const filteredLectures = getFilteredLectures();
-  const lastPage = Math.ceil(filteredLectures.length / PAGE_SIZE);
-  const visibleLectures = filteredLectures.slice(0, page * PAGE_SIZE);
-  const allMajors = [...new Set(lectures.map((lecture) => lecture.major))];
+  const filteredLectures = useMemo(
+    () => getFilteredLectures(),
+    [getFilteredLectures]
+  );
+  const lastPage = useMemo(
+    () => Math.ceil(filteredLectures.length / PAGE_SIZE),
+    [filteredLectures.length]
+  );
+  const visibleLectures = useMemo(
+    () => filteredLectures.slice(0, page * PAGE_SIZE),
+    [filteredLectures, page]
+  );
+  const allMajors = useMemo(
+    () => [...new Set(lectures.map((lecture) => lecture.major))],
+    [lectures]
+  );
 
-  const changeSearchOption = (
-    field: keyof SearchOption,
-    value: SearchOption[typeof field]
-  ) => {
-    setPage(1);
-    setSearchOptions({ ...searchOptions, [field]: value });
-    loaderWrapperRef.current?.scrollTo(0, 0);
-  };
+  const changeSearchOption = useCallback(
+    (field: keyof SearchOption, value: SearchOption[typeof field]) => {
+      setPage(1);
+      setSearchOptions({ ...searchOptions, [field]: value });
+      loaderWrapperRef.current?.scrollTo(0, 0);
+    },
+    [searchOptions]
+  );
 
-  const addSchedule = (lecture: Lecture) => {
-    if (!searchInfo) return;
+  const addSchedule = useCallback(
+    (lecture: Lecture) => {
+      if (!searchInfo) return;
 
-    const { tableId } = searchInfo;
+      const { tableId } = searchInfo;
 
-    const schedules = parseSchedule(lecture.schedule).map((schedule) => ({
-      ...schedule,
-      lecture
-    }));
+      const schedules = parseSchedule(lecture.schedule).map((schedule) => ({
+        ...schedule,
+        lecture
+      }));
 
-    setSchedulesMap((prev) => ({
-      ...prev,
-      [tableId]: [...prev[tableId], ...schedules]
-    }));
+      setSchedulesMap((prev) => ({
+        ...prev,
+        [tableId]: [...prev[tableId], ...schedules]
+      }));
 
-    onClose();
-  };
+      onClose();
+    },
+    [searchInfo, setSchedulesMap, onClose]
+  );
 
   useEffect(() => {
     const start = performance.now();
@@ -470,6 +485,6 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
       </ModalContent>
     </Modal>
   );
-};
+});
 
 export default SearchDialog;
