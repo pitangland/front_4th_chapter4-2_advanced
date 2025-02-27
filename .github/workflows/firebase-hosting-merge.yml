@@ -10,8 +10,21 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: npm run build
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # ✅ 깃허브 레포지토리 코드 가져오기
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm" # ✅ npm 캐싱 추가 (속도 향상)
+
+      - name: Install Dependencies
+        run: npm install # ✅ 패키지 설치 추가
+
+      - name: Build Project
+        run: npm run build # ✅ 프로젝트 빌드 (Firebase Hosting에 배포될 폴더 생성)
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
