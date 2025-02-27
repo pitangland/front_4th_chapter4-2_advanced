@@ -82,8 +82,8 @@ const TIME_SLOTS = [
 
 const PAGE_SIZE = 100;
 
-let cacheMajors: Lecture[] | null = null;
-let cacheLiberalArts: Lecture[] | null = null;
+let cacheMajors: Promise<unknown> | null = null;
+let cacheLiberalArts: Promise<unknown> | null = null;
 
 const fetchMajors = () => axios.get<Lecture[]>("/schedules-majors.json");
 const fetchLiberalArts = () =>
